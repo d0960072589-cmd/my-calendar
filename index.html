@@ -108,7 +108,7 @@ if(!visible.length){list.innerHTML='<div class="empty">目前沒有行程</div>'
 let lastDate="",lastPeriod="";
 visible.forEach((event,index)=>{
 if((currentTab==="week"||currentTab==="all")&&event.date!==lastDate){lastDate=event.date;lastPeriod="";const el=document.createElement("div");el.className="period";el.textContent=dateText(parseDate(event.date));list.appendChild(el)}
-const period=event.allDay||event.time<"12:00"?"上午作業":"下午作業";
+const period=event.allDay?"全天":(event.time<"12:00"?"上午作業":"下午作業");
 if(period!==lastPeriod){lastPeriod=period;const el=document.createElement("div");el.className="period";el.textContent=period;list.appendChild(el)}
 const card=document.createElement("div");card.className="card"+(event.done?" done":"");
 card.innerHTML=`<div class="card-number">${String(index+1).padStart(2,"0")}</div><div class="card-content"><div class="${event.allDay ? "all-day" : "time"}">${event.allDay ? "全天" : event.time}</div><div class="title">${escapeHtml(event.title)}</div>${event.description?`<div class="description">${escapeHtml(event.description)}</div>`:""}</div><button class="check-button ${event.done?"checked":""}" aria-label="完成">${event.done?"✓":""}</button>`;
