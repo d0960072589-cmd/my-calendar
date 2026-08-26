@@ -8,7 +8,7 @@
 <style>
 :root{--bg:#fff5e0;--card:#e3dfdc;--button:#1a0b08;--text:#241b18;--muted:#756b66;--line:#cfc7c1}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
-.app{width:100%;max-width:720px;margin:auto;padding:24px 16px 100px}.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.app{width:100%;max-width:720px;margin:auto;padding:24px 16px calc(120px + env(safe-area-inset-bottom))}.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
 .date-title{font-size:24px;font-weight:800}.date-button{border:0;background:transparent;padding:0;text-align:left;color:var(--text);cursor:pointer}.subtitle{margin-top:5px;font-size:13px;color:var(--muted)}
 .navigation{display:flex;gap:7px}.navigation button{width:40px;height:40px;border:none;border-radius:12px;background:var(--button);color:#fff;font-size:23px;cursor:pointer}
 .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:4px;margin-bottom:20px;background:#eee6db;border-radius:14px}
@@ -18,10 +18,10 @@
 .card.done{opacity:.5}.card.done .title{text-decoration:line-through}.card-number{float:left;width:28px;color:#8a807a;font-size:12px;font-weight:800;padding-top:2px}.card-content{margin-left:38px}
 .time{font-size:13px;font-weight:800}.all-day{font-size:13px;font-weight:800}.title{margin-top:3px;font-size:16px;font-weight:800;line-height:1.45}.description{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.55}
 .check-button{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:29px;height:29px;border-radius:9px;border:2px solid #9c918a;background:transparent;color:#fff;font-size:16px;font-weight:800;cursor:pointer}.check-button.checked{background:var(--button);border-color:var(--button)}
-.add-button{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border:none;border-radius:18px;background:var(--button);color:#fff;font-size:28px;box-shadow:0 8px 22px rgba(26,11,8,.22);cursor:pointer}
+.add-button{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom));width:56px;height:56px;border:none;border-radius:18px;background:var(--button);color:#fff;font-size:28px;box-shadow:0 8px 22px rgba(26,11,8,.22);cursor:pointer}
 .modal-background{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(30,20,15,.45);z-index:100}.modal-background.show{display:flex}
 .modal{width:100%;max-width:460px;background:#fff5e0;border-radius:22px;padding:22px;box-shadow:0 15px 45px rgba(30,20,15,.25)}.modal h2{margin:0 0 20px;font-size:21px}
-.form-group{margin-bottom:15px}.form-group label{display:block;margin-bottom:6px;font-size:13px;font-weight:700}.form-group input,.form-group textarea{width:100%;border:1px solid #cfc7c1;border-radius:12px;background:#fff;padding:11px;font:inherit;color:var(--text);outline:none}.form-group textarea{min-height:100px;resize:vertical}
+.form-group{margin-bottom:15px}.form-group label{display:block;margin-bottom:6px;font-size:13px;font-weight:700}.form-group input,.form-group textarea{width:100%;border:1px solid #cfc7c1;border-radius:12px;background:#fff;padding:12px;font:inherit;color:var(--text);outline:none;min-height:44px}.form-group textarea{min-height:100px;resize:vertical}
 .modal-buttons{display:flex;gap:8px;margin-top:20px}.modal-buttons button{flex:1;border:none;border-radius:12px;padding:12px;font-weight:700;cursor:pointer}.cancel-button{background:#e3dfdc;color:var(--text)}.save-button{background:var(--button);color:#fff}.delete-button{background:#d8cbc6;color:#3a211b}
 .search-box{display:flex;align-items:center;gap:8px;margin:-7px 0 18px;padding:0 12px;height:44px;background:rgba(255,255,255,.62);border:1px solid rgba(150,140,133,.25);border-radius:14px}
 .search-icon{font-size:22px;color:var(--muted);line-height:1}
@@ -34,7 +34,36 @@
 .category-filter button.category-active{background:var(--button);color:#fff;border-color:var(--button)}
 .category-badge{display:inline-block;margin-top:7px;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.58);color:var(--muted);font-size:11px;font-weight:700}
 .empty{text-align:center;padding:60px 20px;color:var(--muted)}
-@media(max-width:420px){.app{padding:18px 13px 100px}.date-title{font-size:21px}.card{padding:13px 51px 13px 12px;border-radius:17px}.card-content{margin-left:35px}.title{font-size:15px}}
+@media(max-width:600px){
+  .app{padding:18px 13px calc(125px + env(safe-area-inset-bottom))}
+  .header{margin-bottom:16px;align-items:center}
+  .date-title{font-size:21px;line-height:1.25}
+  .subtitle{font-size:12px}
+  .navigation{gap:5px}
+  .navigation button{width:38px;height:38px;border-radius:11px}
+  .tabs{margin-bottom:14px}
+  .tabs button{padding:10px 3px;font-size:13px}
+  .search-box{height:46px;margin:-2px 0 12px}
+  .category-filter{margin:-2px 0 16px;scrollbar-width:none}
+  .category-filter::-webkit-scrollbar{display:none}
+  .category-filter button{padding:8px 14px}
+  .period{margin:17px 0 9px}
+  .card{margin:8px 0;padding:13px 52px 14px 11px;border-radius:17px;min-height:76px}
+  .card-number{width:27px;font-size:11px}
+  .card-content{margin-left:34px}
+  .time,.all-day{font-size:13px}
+  .title{font-size:15px;line-height:1.4}
+  .description{font-size:12px;line-height:1.5}
+  .check-button{right:12px;width:31px;height:31px;border-radius:9px}
+  .add-button{right:16px;width:54px;height:54px;border-radius:17px}
+  .modal-background{align-items:flex-end;padding:0}
+  .modal{max-width:none;border-radius:22px 22px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}
+  .modal h2{font-size:20px}
+  .modal-buttons{position:sticky;bottom:0;padding-top:8px;background:#fff5e0}
+}
+@media(min-width:601px){
+  .card{min-height:82px}
+}
 </style>
 </head>
 <body>
@@ -85,7 +114,7 @@
 <div class="form-group"><label>日期</label><input type="date" id="eventDate"></div>
 <div class="form-group">
 <label>分類</label>
-<select id="eventCategory" style="width:100%;border:1px solid #cfc7c1;border-radius:12px;background:#fff;padding:11px;font:inherit;color:var(--text);outline:none;">
+<select id="eventCategory" style="width:100%;border:1px solid #cfc7c1;border-radius:12px;background:#fff;padding:12px;font:inherit;color:var(--text);outline:none;min-height:44px;">
 <option value="工作">工作</option>
 <option value="生活">生活</option>
 <option value="其他">其他</option>
