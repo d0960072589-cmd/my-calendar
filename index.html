@@ -4,127 +4,31 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#fff5e0">
-<title>我的行程｜列表版</title>
+<title>我的行程｜列表版 V8</title>
 <style>
-:root{
-  --bg:#fff5e0;
-  --card:#e3dfdc;
-  --button:#1a0b08;
-  --text:#241b18;
-  --muted:#756b66;
-  --line:#cfc7c1;
-}
-*{box-sizing:border-box}
-html,body{margin:0;min-height:100%;background:var(--bg)}
-body{
-  color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
-}
-.app{
-  width:100%;
-  max-width:720px;
-  margin:0 auto;
-  padding:20px 16px calc(90px + env(safe-area-inset-bottom));
-}
-.topbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:16px;
-}
-h1{font-size:22px;line-height:1.2;margin:0;font-weight:800}
-.sub{font-size:13px;color:var(--muted);margin-top:5px}
-.nav{display:flex;gap:7px}
-.nav button{
-  width:38px;height:38px;border:0;border-radius:12px;
-  background:var(--button);color:#fff;font-size:22px;line-height:1;
-}
-.tabs{
-  display:grid;grid-template-columns:repeat(4,1fr);
-  gap:5px;padding:4px;margin-bottom:20px;
-  background:#eee6db;border-radius:14px;
-}
-.tabs button{
-  border:0;background:transparent;color:var(--muted);
-  border-radius:10px;padding:9px 3px;font-size:13px;
-}
-.tabs .active{background:var(--card);color:var(--text);font-weight:800}
-.period{
-  display:flex;align-items:center;gap:10px;
-  margin:18px 0 9px;
-  font-size:13px;font-weight:800;color:var(--muted);
-}
-.period:after{content:"";height:1px;background:var(--line);flex:1}
-.card{
-  width:100%;
-  position:relative;
-  display:block;
-  margin:9px 0;
-  padding:14px 55px 14px 14px;
-  background:var(--card);
-  border:1px solid rgba(150,140,133,.28);
-  border-radius:18px;
-  box-shadow:0 3px 12px rgba(70,55,45,.08);
-}
-.card.done{opacity:.52}
-.card.done .title{text-decoration:line-through}
-.num{
-  float:left;width:28px;
-  color:#8a807a;font-size:12px;font-weight:800;
-  padding-top:2px;
-}
-.content{margin-left:38px}
-.time{font-size:13px;font-weight:800;margin-bottom:2px}
-.title{font-size:16px;font-weight:800;line-height:1.45}
-.desc{
-  margin-top:4px;color:var(--muted);
-  font-size:12px;line-height:1.55;
-}
-.check{
-  position:absolute;right:14px;top:50%;
-  transform:translateY(-50%);
-  width:29px;height:29px;border-radius:9px;
-  border:2px solid #9c918a;background:transparent;
-  color:#fff;font-size:16px;font-weight:800;
-}
-.check.checked{background:var(--button);border-color:var(--button)}
-.fab{
-  position:fixed;right:18px;bottom:20px;
-  width:54px;height:54px;border:0;border-radius:18px;
-  background:var(--button);color:#fff;font-size:27px;
-  box-shadow:0 8px 22px rgba(26,11,8,.22);
-}
-.empty{text-align:center;color:var(--muted);padding:58px 20px;line-height:1.8}.empty small{font-size:12px}.note{text-align:center;color:#a49a93;font-size:11px;margin-top:22px}
-@media(max-width:420px){
-  .app{padding-left:13px;padding-right:13px;padding-top:16px}
-  h1{font-size:20px}
-  .card{padding:13px 51px 13px 12px;border-radius:17px}
-  .content{margin-left:35px}
-  .title{font-size:15px}
-}
-
-.day-heading{
-  margin:22px 0 10px;
-  padding-bottom:8px;
-  border-bottom:1px solid var(--line);
-  font-size:18px;
-  font-weight:800;
-}
-.day-heading:first-child{margin-top:2px}
+:root{--bg:#fff5e0;--card:#e3dfdc;--button:#1a0b08;--text:#241b18;--muted:#756b66;--line:#cfc7c1}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg)}
+body{color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
+.app{width:100%;max-width:720px;margin:auto;padding:18px 14px 100px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
+h1{font-size:21px;margin:0;font-weight:800}.sub{font-size:12px;color:var(--muted);margin-top:4px}
+.nav{display:flex;gap:6px}.nav button{width:38px;height:38px;border:0;border-radius:12px;background:var(--button);color:#fff;font-size:22px}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:4px;background:#eee6db;border-radius:14px;margin-bottom:18px}
+.tabs button{border:0;background:transparent;color:var(--muted);border-radius:10px;padding:9px 2px;font-size:13px}.tabs .active{background:var(--card);color:var(--text);font-weight:800}
+.day-heading{font-size:18px;font-weight:800;border-bottom:1px solid var(--line);padding-bottom:8px;margin:20px 0 8px}.day-heading:first-child{margin-top:2px}
+.period{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:13px;font-weight:800;margin:15px 0 8px}.period:after{content:"";height:1px;background:var(--line);flex:1}
+.card{position:relative;background:var(--card);border-radius:18px;margin:9px 0;padding:14px 52px 14px 13px;box-shadow:0 3px 12px rgba(70,55,45,.08)}
+.num{float:left;width:28px;color:#8a807a;font-size:12px;font-weight:800}.content{margin-left:36px}.time{font-size:13px;font-weight:800}.title{font-size:15.5px;font-weight:800;line-height:1.45}.desc{font-size:12px;color:var(--muted);line-height:1.5;margin-top:3px}
+.check{position:absolute;right:13px;top:50%;transform:translateY(-50%);width:29px;height:29px;border-radius:9px;border:2px solid #9c918a;background:transparent}.check.checked{background:var(--button);border-color:var(--button);color:#fff}
+.empty{text-align:center;color:var(--muted);padding:35px}.fab{position:fixed;right:18px;bottom:20px;width:54px;height:54px;border:0;border-radius:18px;background:var(--button);color:#fff;font-size:27px}
+.note{text-align:center;color:#a49a93;font-size:11px;margin-top:20px}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="topbar">
-    <div>
-      <h1 id="dateTitle">8月26日（三）</h1>
-      <div class="sub" id="dateSub">今日行程 · 列表模式</div>
-    </div>
-    <div class="nav">
-      <button id="prevDay" aria-label="前一天">‹</button>
-      <button id="nextDay" aria-label="後一天">›</button>
-    </div>
+    <div><h1 id="dateTitle">8月26日（三）</h1><div class="sub" id="dateSub">今天 · 列表模式</div></div>
+    <div class="nav"><button id="prev">‹</button><button id="next">›</button></div>
   </div>
 
   <div class="tabs">
@@ -134,206 +38,79 @@ h1{font-size:22px;line-height:1.2;margin:0;font-weight:800}
     <button class="tab" data-view="all">全部</button>
   </div>
 
+  <!-- V8 intentionally contains visible test cards in the HTML itself. -->
   <div id="list">
-    <!-- Static fallback cards: visible even if a mobile file preview does not run JavaScript. -->
     <div class="period">上午作業</div>
-    <div class="card">
-      <div class="num">01</div>
-      <div class="content">
-        <div class="time">09:00</div>
-        <div class="title">撰寫《三多有我在》訪問大綱</div>
-        <div class="desc">確認訪問順序、補充追問題，整理給來賓版題綱</div>
-      </div>
-      <button class="check" aria-label="完成"></button>
-    </div>
-    <div class="card">
-      <div class="num">02</div>
-      <div class="content">
-        <div class="time">10:30</div>
-        <div class="title">整理錄音檔</div>
-        <div class="desc">確認檔名、剪除前後空白與明顯雜訊</div>
-      </div>
-      <button class="check" aria-label="完成"></button>
-    </div>
-    <div class="card">
-      <div class="num">03</div>
-      <div class="content">
-        <div class="time">11:30</div>
-        <div class="title">錄音</div>
-        <div class="desc">確認麥克風與錄音設定後開始錄製</div>
-      </div>
-      <button class="check" aria-label="完成"></button>
-    </div>
+    <div class="card"><div class="num">01</div><div class="content"><div class="time">09:00</div><div class="title">撰寫《三多有我在》訪問大綱</div><div class="desc">確認訪問順序、補充追問題，整理給來賓版題綱</div></div><button class="check"></button></div>
+    <div class="card"><div class="num">02</div><div class="content"><div class="time">10:30</div><div class="title">整理錄音檔</div><div class="desc">確認檔名、剪除前後空白與明顯雜訊</div></div><button class="check"></button></div>
+    <div class="card"><div class="num">03</div><div class="content"><div class="time">11:30</div><div class="title">錄音</div><div class="desc">確認麥克風與錄音設定後開始錄製</div></div><button class="check"></button></div>
     <div class="period">下午作業</div>
-    <div class="card">
-      <div class="num">04</div>
-      <div class="content">
-        <div class="time">13:30</div>
-        <div class="title">修改節目口播稿</div>
-        <div class="desc">檢查資訊正確性、斷句與口語表達</div>
-      </div>
-      <button class="check" aria-label="完成"></button>
-    </div>
-    <div class="card">
-      <div class="num">05</div>
-      <div class="content">
-        <div class="time">15:00</div>
-        <div class="title">製作節目音效</div>
-        <div class="desc">整理片頭、轉場與收尾音效</div>
-      </div>
-      <button class="check" aria-label="完成"></button>
-    </div>
-    <div class="card">
-      <div class="num">06</div>
-      <div class="content">
-        <div class="time">16:30</div>
-        <div class="title">來賓訪問</div>
-        <div class="desc">確認訪綱與錄音設備</div>
-      </div>
-      <button class="check" aria-label="完成"></button>
-    </div>
+    <div class="card"><div class="num">04</div><div class="content"><div class="time">13:30</div><div class="title">修改節目口播稿</div><div class="desc">檢查資訊正確性、斷句與口語表達</div></div><button class="check"></button></div>
+    <div class="card"><div class="num">05</div><div class="content"><div class="time">15:00</div><div class="title">製作節目音效</div><div class="desc">整理片頭、轉場與收尾音效</div></div><button class="check"></button></div>
+    <div class="card"><div class="num">06</div><div class="content"><div class="time">16:30</div><div class="title">來賓訪問</div><div class="desc">確認訪綱與錄音設備</div></div><button class="check"></button></div>
   </div>
-  <div class="note">互動原型｜資料目前儲存在此裝置</div>
-</div></div>
 
-<button class="fab" aria-label="新增行程">＋</button>
+  <div class="note">V8 測試版｜測試資料已直接寫入網頁</div>
+</div>
+<button class="fab" id="add">＋</button>
 
 <script>
-const STORAGE_KEY="calendar_list_events_v2";
-const DEMO=[
- {id:"1",date:"2026-08-26",time:"09:00",title:"撰寫《三多有我在》訪問大綱",desc:"確認訪問順序、補充追問題，整理給來賓版題綱",done:false},
- {id:"2",date:"2026-08-26",time:"10:30",title:"整理錄音檔",desc:"確認檔名、剪除前後空白與明顯雜訊",done:false},
- {id:"3",date:"2026-08-26",time:"11:30",title:"錄音",desc:"確認麥克風與錄音設定後開始錄製",done:false},
- {id:"4",date:"2026-08-26",time:"13:30",title:"修改節目口播稿",desc:"檢查資訊正確性、斷句與口語表達",done:false},
- {id:"5",date:"2026-08-26",time:"15:00",title:"製作節目音效",desc:"整理片頭、轉場與收尾音效",done:false},
- {id:"6",date:"2026-08-26",time:"16:30",title:"來賓訪問",desc:"確認訪綱與錄音設備",done:false},
- {id:"7",date:"2026-08-27",time:"10:00",title:"節目製作會議",desc:"確認本週節目進度與錄音安排",done:false},
- {id:"8",date:"2026-08-27",time:"14:00",title:"整理採訪資料",desc:"確認來賓背景資料與節目重點",done:false},
- {id:"9",date:"2026-08-28",time:"09:30",title:"錄音後製",desc:"剪輯人聲並整理音量",done:false},
- {id:"10",date:"2026-08-28",time:"15:00",title:"完成節目稿件",desc:"最後檢查文字與口播節奏",done:false},
- {id:"11",date:"2026-08-29",time:"11:00",title:"節目資料備份",desc:"備份音檔、腳本與相關文件",done:false}
-];
+const data={
+today:[
+["上午作業","09:00","撰寫《三多有我在》訪問大綱","確認訪問順序、補充追問題，整理給來賓版題綱"],
+["上午作業","10:30","整理錄音檔","確認檔名、剪除前後空白與明顯雜訊"],
+["上午作業","11:30","錄音","確認麥克風與錄音設定後開始錄製"],
+["下午作業","13:30","修改節目口播稿","檢查資訊正確性、斷句與口語表達"],
+["下午作業","15:00","製作節目音效","整理片頭、轉場與收尾音效"],
+["下午作業","16:30","來賓訪問","確認訪綱與錄音設備"]],
+tomorrow:[
+["上午作業","10:00","節目製作會議","確認本週節目進度與錄音安排"],
+["下午作業","14:00","整理採訪資料","確認來賓背景資料與節目重點"]],
+week:[
+["8月23日（日）","09:00","週前準備","整理本週節目工作清單"],
+["8月26日（三）","09:00","撰寫《三多有我在》訪問大綱","確認訪問順序、補充追問題"],
+["8月26日（三）","10:30","整理錄音檔","確認檔名與音檔"],
+["8月26日（三）","13:30","修改節目口播稿","檢查資訊與口播節奏"],
+["8月27日（四）","10:00","節目製作會議","確認本週節目進度"],
+["8月27日（四）","14:00","整理採訪資料","確認來賓背景資料"],
+["8月28日（五）","09:30","錄音後製","剪輯人聲並整理音量"],
+["8月28日（五）","15:00","完成節目稿件","最後檢查文字"],
+["8月29日（六）","11:00","節目資料備份","備份音檔、腳本與文件"]],
+all:[
+["8月26日（三）","09:00","撰寫《三多有我在》訪問大綱","確認訪問順序、補充追問題"],
+["8月26日（三）","10:30","整理錄音檔","確認檔名與音檔"],
+["8月26日（三）","11:30","錄音","確認麥克風與錄音設定"],
+["8月26日（三）","13:30","修改節目口播稿","檢查資訊與口播節奏"],
+["8月27日（四）","10:00","節目製作會議","確認本週節目進度"],
+["8月27日（四）","14:00","整理採訪資料","確認來賓背景資料"],
+["8月28日（五）","09:30","錄音後製","剪輯人聲並整理音量"],
+["8月28日（五）","15:00","完成節目稿件","最後檢查文字"],
+["8月29日（六）","11:00","節目資料備份","備份音檔、腳本與文件"]]
+};
 
-let events;
-try{
- const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));
- events=Array.isArray(saved)&&saved.length?saved:DEMO;
-}catch(e){events=DEMO}
-
-let view="today";
-let cursor=new Date(2026,7,26);
-
-function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(events))}catch(e){}}
-function pad(n){return String(n).padStart(2,"0")}
-function dateKey(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
-function parseKey(s){const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)}
-function dateText(d){const w=["日","一","二","三","四","五","六"];return `${d.getMonth()+1}月${d.getDate()}日（${w[d.getDay()]}）`}
-function period(t){const h=Number(t.split(":")[0]);return h<12?"上午作業":h<18?"下午作業":"晚上"}
-function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
-
-function eventsForDate(d){return events.filter(e=>e.date===dateKey(d)).sort((a,b)=>a.time.localeCompare(b.time))}
-function renderDay(d, showDate=false){
- const arr=eventsForDate(d);
- let out="";
- if(showDate) out+=`<div class="day-heading">${dateText(d)}</div>`;
- if(!arr.length) return out+`<div class="empty">沒有安排行程<br><small>點右下角 ＋ 新增一筆</small></div>`;
- let p="";
- arr.forEach((e,i)=>{
-  const ep=period(e.time);
-  if(ep!==p){p=ep;out+=`<div class="period">${ep}</div>`}
-  out+=`
-  <div class="card ${e.done?"done":""}" data-id="${e.id}">
-    <div class="num">${pad(i+1)}</div>
-    <div class="content">
-      <div class="time">${esc(e.time)}</div>
-      <div class="title">${esc(e.title)}</div>
-      ${e.desc?`<div class="desc">${esc(e.desc)}</div>`:""}
-    </div>
-    <button class="check ${e.done?"checked":""}" data-action="check">${e.done?"✓":""}</button>
-  </div>`;
- });
- return out;
-}
-
-function render(){
- document.getElementById("dateTitle").textContent=dateText(cursor);
- const sub={today:"今日行程 · 列表模式",tomorrow:"明日行程 · 列表模式",week:"本週行程 · 列表模式",all:"全部行程 · 列表模式"}[view];
- document.getElementById("dateSub").textContent=sub;
+function render(view){
  const list=document.getElementById("list");
- if(view==="today") list.innerHTML=renderDay(cursor);
- if(view==="tomorrow"){const d=new Date(cursor);d.setDate(d.getDate()+1);list.innerHTML=renderDay(d)}
- if(view==="week"){
-   let d=new Date(cursor); d.setDate(d.getDate()-d.getDay());
-   let out="";
-   for(let i=0;i<7;i++){out+=renderDay(d,true);d.setDate(d.getDate()+1)}
+ if(view==="today"||view==="tomorrow"){
+   const rows=data[view]; let out="",p="";
+   rows.forEach((r,i)=>{if(r[0]!==p){p=r[0];out+=`<div class="period">${p}</div>`}out+=card(i+1,r[1],r[2],r[3])});
+   list.innerHTML=out;
+ }else{
+   let out="",p="";
+   data[view].forEach((r,i)=>{
+     if(r[0]!==p){p=r[0];out+=`<div class="day-heading">${p}</div>`}
+     out+=card(i+1,r[1],r[2],r[3]);
+   });
    list.innerHTML=out;
  }
- if(view==="all"){
-   const dates=[...new Set(events.map(e=>e.date))].sort();
-   list.innerHTML=dates.map(k=>renderDay(parseKey(k),true)).join("");
- }
- bindCards();
+ bindChecks();
 }
-
-function bindCards(){
- document.querySelectorAll(".check").forEach(btn=>{
-  btn.onclick=(ev)=>{
-   ev.stopPropagation();
-   const id=btn.closest(".card").dataset.id;
-   const e=events.find(x=>x.id===id);
-   if(e){e.done=!e.done;save();render()}
-  };
- });
- document.querySelectorAll(".card").forEach(card=>{
-  card.onclick=()=>{
-   const e=events.find(x=>x.id===card.dataset.id);
-   if(e) editEvent(e);
-  };
- });
-}
-
-function editEvent(e){
- const title=prompt("行程名稱",e.title);
- if(title===null)return;
- if(!title.trim()){alert("行程名稱不能留白");return}
- const time=prompt("時間（例如 09:30）",e.time);
- if(time===null)return;
- const desc=prompt("備註（可留白）",e.desc||"");
- if(desc===null)return;
- e.title=title.trim(); e.time=time.trim()||e.time; e.desc=desc.trim();
- save();render();
-}
-
-function addEvent(){
- const time=prompt("時間（例如 09:30）");
- if(!time)return;
- const title=prompt("行程名稱");
- if(!title)return;
- const desc=prompt("備註（可留白）")||"";
- events.push({id:String(Date.now()),date:dateKey(cursor),time:time.trim(),title:title.trim(),desc:desc.trim(),done:false});
- save();render();
-}
-
-document.getElementById("prevDay").onclick=()=>{
- cursor.setDate(cursor.getDate()-1);
- view="today";setActive("today");render();
-};
-document.getElementById("nextDay").onclick=()=>{
- cursor.setDate(cursor.getDate()+1);
- view="today";setActive("today");render();
-};
-
-function setActive(v){
- document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.view===v));
-}
-document.querySelectorAll(".tab").forEach(tab=>{
- tab.onclick=()=>{
-  view=tab.dataset.view;setActive(view);render();
- };
-});
-document.getElementById("addBtn").onclick=addEvent;
-
-render();
+function card(n,time,title,desc){return `<div class="card"><div class="num">${String(n).padStart(2,"0")}</div><div class="content"><div class="time">${time}</div><div class="title">${title}</div><div class="desc">${desc}</div></div><button class="check"></button></div>`}
+function bindChecks(){document.querySelectorAll(".check").forEach(b=>b.onclick=e=>{e.stopPropagation();b.classList.toggle("checked");b.textContent=b.classList.contains("checked")?"✓":""})}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");render(b.dataset.view);document.getElementById("dateSub").textContent={today:"今天 · 列表模式",tomorrow:"明天 · 列表模式",week:"本週 · 列表模式",all:"全部 · 列表模式"}[b.dataset.view]});
+document.getElementById("prev").onclick=()=>alert("下一階段會加入真正的日期前後切換");
+document.getElementById("next").onclick=()=>alert("下一階段會加入真正的日期前後切換");
+document.getElementById("add").onclick=()=>alert("下一階段會加入新增行程功能");
+bindChecks();
 </script>
 </body>
 </html>
