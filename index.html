@@ -9,7 +9,7 @@
 :root{--bg:#fff5e0;--card:#e3dfdc;--button:#1a0b08;--text:#241b18;--muted:#756b66;--line:#cfc7c1}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
 .app{width:100%;max-width:720px;margin:auto;padding:24px 16px 100px}.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.date-title{font-size:24px;font-weight:800}.subtitle{margin-top:5px;font-size:13px;color:var(--muted)}
+.date-title{font-size:24px;font-weight:800}.date-button{border:0;background:transparent;padding:0;text-align:left;color:var(--text);cursor:pointer}.subtitle{margin-top:5px;font-size:13px;color:var(--muted)}
 .navigation{display:flex;gap:7px}.navigation button{width:40px;height:40px;border:none;border-radius:12px;background:var(--button);color:#fff;font-size:23px;cursor:pointer}
 .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:4px;margin-bottom:20px;background:#eee6db;border-radius:14px}
 .tabs button{border:none;background:transparent;color:var(--muted);padding:9px 3px;border-radius:10px;cursor:pointer}.tabs .active{background:var(--card);color:var(--text);font-weight:800}
@@ -30,7 +30,7 @@
 <body>
 <div class="app">
 <div class="header">
-<div><div class="date-title" id="dateTitle"></div><div class="subtitle" id="subtitle">列表模式</div></div>
+<div><button class="date-title date-button" id="dateTitle" onclick="openDatePicker()"></button><div class="subtitle" id="subtitle">列表模式</div></div>
 <div class="navigation"><button onclick="changeDay(-1)">‹</button><button onclick="goToday()">•</button><button onclick="changeDay(1)">›</button></div>
 </div>
 <div class="tabs">
@@ -42,6 +42,20 @@
 <div id="scheduleList"></div>
 </div>
 <button class="add-button" onclick="openAddModal()">＋</button>
+
+<div class="modal-background" id="datePickerBackground">
+  <div class="modal">
+    <h2>選擇日期</h2>
+    <div class="form-group">
+      <label>前往日期</label>
+      <input type="date" id="jumpDate">
+    </div>
+    <div class="modal-buttons">
+      <button class="cancel-button" onclick="closeDatePicker()">取消</button>
+      <button class="save-button" onclick="jumpToDate()">前往</button>
+    </div>
+  </div>
+</div>
 <div class="modal-background" id="modalBackground"><div class="modal">
 <h2 id="modalTitle">新增行程</h2>
 <div class="form-group"><label>日期</label><input type="date" id="eventDate"></div>
@@ -95,6 +109,26 @@ card.querySelector(".check-button").addEventListener("click",e=>{e.stopPropagati
 function setTab(tab){currentTab=tab;if(tab==="today")selectedDate=new Date(today);if(tab==="tomorrow")selectedDate=addDays(today,1);render()}
 function changeDay(n){currentTab="today";selectedDate=addDays(selectedDate,n);render()}
 function goToday(){currentTab="today";selectedDate=new Date(today);render()}
+
+function openDatePicker(){
+  document.getElementById("jumpDate").value=dateKey(selectedDate);
+  document.getElementById("datePickerBackground").classList.add("show");
+}
+function closeDatePicker(){
+  document.getElementById("datePickerBackground").classList.remove("show");
+}
+function jumpToDate(){
+  const value=document.getElementById("jumpDate").value;
+  if(!value){alert("請選擇日期");return;}
+  selectedDate=parseDate(value);
+  currentTab="today";
+  closeDatePicker();
+  render();
+}
+document.getElementById("datePickerBackground").addEventListener("click",e=>{
+  if(e.target.id==="datePickerBackground")closeDatePicker();
+});
+
 function openAddModal(){editingId=null;document.getElementById("modalTitle").textContent="新增行程";document.getElementById("eventDate").value=dateKey(currentTab==="tomorrow"?addDays(today,1):selectedDate);document.getElementById("eventTime").value="";document.getElementById("eventTitle").value="";document.getElementById("eventDescription").value="";document.getElementById("deleteButton").style.display="none";document.getElementById("modalBackground").classList.add("show")}
 function openEditModal(id){const e=events.find(x=>x.id===id);if(!e)return;editingId=id;document.getElementById("modalTitle").textContent="編輯行程";document.getElementById("eventDate").value=e.date;document.getElementById("eventTime").value=e.time;document.getElementById("eventTitle").value=e.title;document.getElementById("eventDescription").value=e.description||"";document.getElementById("deleteButton").style.display="block";document.getElementById("modalBackground").classList.add("show")}
 function saveEvent(){const date=document.getElementById("eventDate").value,time=document.getElementById("eventTime").value,title=document.getElementById("eventTitle").value.trim(),description=document.getElementById("eventDescription").value.trim();if(!date||!time||!title){alert("請輸入日期、時間和行程名稱");return}if(editingId===null)events.push({id:Date.now(),date,time,title,description,done:false});else{const e=events.find(x=>x.id===editingId);if(e){e.date=date;e.time=time;e.title=title;e.description=description}}save();render();closeModal()}
