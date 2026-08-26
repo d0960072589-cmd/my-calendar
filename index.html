@@ -16,7 +16,7 @@
 .period{display:flex;align-items:center;gap:10px;margin:20px 0 10px;color:var(--muted);font-size:13px;font-weight:800}.period:after{content:"";height:1px;background:var(--line);flex:1}
 .card{position:relative;margin:9px 0;padding:14px 55px 14px 14px;background:var(--card);border-radius:18px;border:1px solid rgba(150,140,133,.28);box-shadow:0 3px 12px rgba(70,55,45,.08);cursor:pointer}
 .card.done{opacity:.5}.card.done .title{text-decoration:line-through}.card-number{float:left;width:28px;color:#8a807a;font-size:12px;font-weight:800;padding-top:2px}.card-content{margin-left:38px}
-.time{font-size:13px;font-weight:800}.title{margin-top:3px;font-size:16px;font-weight:800;line-height:1.45}.description{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.55}
+.time{font-size:13px;font-weight:800}.all-day{font-size:13px;font-weight:800}.title{margin-top:3px;font-size:16px;font-weight:800;line-height:1.45}.description{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.55}
 .check-button{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:29px;height:29px;border-radius:9px;border:2px solid #9c918a;background:transparent;color:#fff;font-size:16px;font-weight:800;cursor:pointer}.check-button.checked{background:var(--button);border-color:var(--button)}
 .add-button{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border:none;border-radius:18px;background:var(--button);color:#fff;font-size:28px;box-shadow:0 8px 22px rgba(26,11,8,.22);cursor:pointer}
 .modal-background{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(30,20,15,.45);z-index:100}.modal-background.show{display:flex}
@@ -59,7 +59,14 @@
 <div class="modal-background" id="modalBackground"><div class="modal">
 <h2 id="modalTitle">新增行程</h2>
 <div class="form-group"><label>日期</label><input type="date" id="eventDate"></div>
-<div class="form-group"><label>時間</label><input type="time" id="eventTime"></div>
+<div class="form-group">
+<label>時間</label>
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+<input type="checkbox" id="eventAllDay" onchange="toggleAllDay()" style="width:18px;height:18px;accent-color:#1a0b08;">
+<label for="eventAllDay" style="margin:0;font-size:13px;font-weight:600;cursor:pointer;">全天行程</label>
+</div>
+<input type="time" id="eventTime">
+</div>
 <div class="form-group"><label>行程名稱</label><input type="text" id="eventTitle" placeholder="例如：撰寫訪問大綱"></div>
 <div class="form-group"><label>備註</label><textarea id="eventDescription" placeholder="可以輸入行程備註"></textarea></div>
 <div class="modal-buttons"><button class="cancel-button" onclick="closeModal()">取消</button><button class="delete-button" id="deleteButton" onclick="deleteEvent()">刪除</button><button class="save-button" onclick="saveEvent()">儲存</button></div>
@@ -72,14 +79,15 @@ function parseDate(s){const [y,m,d]=s.split("-").map(Number);const x=new Date(y,
 function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
 function dateText(d){return `${d.getMonth()+1}月${d.getDate()}日（${["日","一","二","三","四","五","六"][d.getDay()]}）`}
 let events=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
+if(events) events = events.map(e=>({...e, allDay: e.allDay === true}));
 if(!events){
 events=[
-{id:1,date:dateKey(today),time:"09:00",title:"撰寫《三多有我在》訪問大綱",description:"確認訪問順序、補充追問題，整理給來賓版題綱",done:false},
-{id:2,date:dateKey(today),time:"10:30",title:"整理錄音檔",description:"確認檔名、剪除前後空白與明顯雜訊",done:false},
-{id:3,date:dateKey(today),time:"11:30",title:"錄音",description:"確認麥克風與錄音設定後開始錄製",done:false},
-{id:4,date:dateKey(today),time:"13:30",title:"修改節目口播稿",description:"檢查資訊正確性、斷句與口語表達",done:false},
-{id:5,date:dateKey(today),time:"15:00",title:"製作節目音效",description:"整理片頭、轉場與收尾音效",done:false},
-{id:6,date:dateKey(today),time:"16:30",title:"來賓訪問",description:"確認訪綱與錄音設備",done:false}]; save();
+{id:1,date:dateKey(today),time:"09:00",title:"撰寫《三多有我在》訪問大綱",description:"確認訪問順序、補充追問題，整理給來賓版題綱",done:false,allDay:false},
+{id:2,date:dateKey(today),time:"10:30",title:"整理錄音檔",description:"確認檔名、剪除前後空白與明顯雜訊",done:false,allDay:false},
+{id:3,date:dateKey(today),time:"11:30",title:"錄音",description:"確認麥克風與錄音設定後開始錄製",done:false,allDay:false},
+{id:4,date:dateKey(today),time:"13:30",title:"修改節目口播稿",description:"檢查資訊正確性、斷句與口語表達",done:false,allDay:false},
+{id:5,date:dateKey(today),time:"15:00",title:"製作節目音效",description:"整理片頭、轉場與收尾音效",done:false,allDay:false},
+{id:6,date:dateKey(today),time:"16:30",title:"來賓訪問",description:"確認訪綱與錄音設備",done:false,allDay:false}]; save();
 }else{let changed=false;events=events.map(e=>{if(!e.date){changed=true;return {...e,date:dateKey(today)}}return e});if(changed)save()}
 let selectedDate=new Date(today),currentTab="today",editingId=null;
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(events))}
@@ -95,15 +103,15 @@ else if(currentTab==="tomorrow"){title.textContent=dateText(addDays(today,1));su
 else if(currentTab==="week"){title.textContent="本週行程";sub.textContent="列表模式"}
 else{title.textContent="全部行程";sub.textContent="列表模式"}
 document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===currentTab));
-let visible=getVisibleEvents().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)),list=document.getElementById("scheduleList");list.innerHTML="";
+let visible=getVisibleEvents().sort((a,b)=>(a.date+(a.allDay?"00:00":a.time||"23:59")).localeCompare(b.date+(b.allDay?"00:00":b.time||"23:59"))),list=document.getElementById("scheduleList");list.innerHTML="";
 if(!visible.length){list.innerHTML='<div class="empty">目前沒有行程</div>';return}
 let lastDate="",lastPeriod="";
 visible.forEach((event,index)=>{
 if((currentTab==="week"||currentTab==="all")&&event.date!==lastDate){lastDate=event.date;lastPeriod="";const el=document.createElement("div");el.className="period";el.textContent=dateText(parseDate(event.date));list.appendChild(el)}
-const period=event.time<"12:00"?"上午作業":"下午作業";
+const period=event.allDay||event.time<"12:00"?"上午作業":"下午作業";
 if(period!==lastPeriod){lastPeriod=period;const el=document.createElement("div");el.className="period";el.textContent=period;list.appendChild(el)}
 const card=document.createElement("div");card.className="card"+(event.done?" done":"");
-card.innerHTML=`<div class="card-number">${String(index+1).padStart(2,"0")}</div><div class="card-content"><div class="time">${event.time}</div><div class="title">${escapeHtml(event.title)}</div>${event.description?`<div class="description">${escapeHtml(event.description)}</div>`:""}</div><button class="check-button ${event.done?"checked":""}" aria-label="完成">${event.done?"✓":""}</button>`;
+card.innerHTML=`<div class="card-number">${String(index+1).padStart(2,"0")}</div><div class="card-content"><div class="${event.allDay ? "all-day" : "time"}">${event.allDay ? "全天" : event.time}</div><div class="title">${escapeHtml(event.title)}</div>${event.description?`<div class="description">${escapeHtml(event.description)}</div>`:""}</div><button class="check-button ${event.done?"checked":""}" aria-label="完成">${event.done?"✓":""}</button>`;
 card.addEventListener("click",e=>{if(e.target.classList.contains("check-button"))return;openEditModal(event.id)});
 card.querySelector(".check-button").addEventListener("click",e=>{e.stopPropagation();event.done=!event.done;save();render()});list.appendChild(card)})}
 function setTab(tab){currentTab=tab;if(tab==="today")selectedDate=new Date(today);if(tab==="tomorrow")selectedDate=addDays(today,1);render()}
@@ -129,9 +137,16 @@ document.getElementById("datePickerBackground").addEventListener("click",e=>{
   if(e.target.id==="datePickerBackground")closeDatePicker();
 });
 
-function openAddModal(){editingId=null;document.getElementById("modalTitle").textContent="新增行程";document.getElementById("eventDate").value=dateKey(currentTab==="tomorrow"?addDays(today,1):selectedDate);document.getElementById("eventTime").value="";document.getElementById("eventTitle").value="";document.getElementById("eventDescription").value="";document.getElementById("deleteButton").style.display="none";document.getElementById("modalBackground").classList.add("show")}
-function openEditModal(id){const e=events.find(x=>x.id===id);if(!e)return;editingId=id;document.getElementById("modalTitle").textContent="編輯行程";document.getElementById("eventDate").value=e.date;document.getElementById("eventTime").value=e.time;document.getElementById("eventTitle").value=e.title;document.getElementById("eventDescription").value=e.description||"";document.getElementById("deleteButton").style.display="block";document.getElementById("modalBackground").classList.add("show")}
-function saveEvent(){const date=document.getElementById("eventDate").value,time=document.getElementById("eventTime").value,title=document.getElementById("eventTitle").value.trim(),description=document.getElementById("eventDescription").value.trim();if(!date||!time||!title){alert("請輸入日期、時間和行程名稱");return}if(editingId===null)events.push({id:Date.now(),date,time,title,description,done:false});else{const e=events.find(x=>x.id===editingId);if(e){e.date=date;e.time=time;e.title=title;e.description=description}}save();render();closeModal()}
+function toggleAllDay(){
+const checkbox=document.getElementById("eventAllDay");
+const timeInput=document.getElementById("eventTime");
+timeInput.disabled=checkbox.checked;
+timeInput.style.opacity=checkbox.checked?"0.45":"1";
+if(checkbox.checked) timeInput.value="";
+}
+function openAddModal(){editingId=null;document.getElementById("modalTitle").textContent="新增行程";document.getElementById("eventDate").value=dateKey(currentTab==="tomorrow"?addDays(today,1):selectedDate);document.getElementById("eventTime").value="";document.getElementById("eventAllDay").checked=false;toggleAllDay();document.getElementById("eventTitle").value="";document.getElementById("eventDescription").value="";document.getElementById("deleteButton").style.display="none";document.getElementById("modalBackground").classList.add("show")}
+function openEditModal(id){const e=events.find(x=>x.id===id);if(!e)return;editingId=id;document.getElementById("modalTitle").textContent="編輯行程";document.getElementById("eventDate").value=e.date;document.getElementById("eventTime").value=e.time||"";document.getElementById("eventAllDay").checked=!!e.allDay;toggleAllDay();document.getElementById("eventTitle").value=e.title;document.getElementById("eventDescription").value=e.description||"";document.getElementById("deleteButton").style.display="block";document.getElementById("modalBackground").classList.add("show")}
+function saveEvent(){const date=document.getElementById("eventDate").value,time=document.getElementById("eventTime").value,title=document.getElementById("eventTitle").value.trim(),description=document.getElementById("eventDescription").value.trim(),allDay=document.getElementById("eventAllDay").checked;if(!date||(!allDay&&!time)||!title){alert(allDay?"請輸入日期和行程名稱":"請輸入日期、時間和行程名稱");return}if(editingId===null)events.push({id:Date.now(),date,time:allDay?"":time,title,description,done:false,allDay});else{const e=events.find(x=>x.id===editingId);if(e){e.date=date;e.time=allDay?"":time;e.title=title;e.description=description;e.allDay=allDay}}save();render();closeModal()}
 function deleteEvent(){if(editingId===null)return;if(!confirm("確定要刪除這個行程嗎？"))return;events=events.filter(e=>e.id!==editingId);save();render();closeModal()}
 function closeModal(){document.getElementById("modalBackground").classList.remove("show")}
 document.getElementById("modalBackground").addEventListener("click",e=>{if(e.target.id==="modalBackground")closeModal()});
