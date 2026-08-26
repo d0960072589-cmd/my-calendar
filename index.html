@@ -104,7 +104,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,B
 <script>
 const STORAGE_KEY="myCalendarEvents";
 const GOOGLE_CLIENT_ID="999156061137-t6089c01hqutua812no8ttts4rbrre6v.apps.googleusercontent.com";
-const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events";
+const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.calendarlist.readonly";
 const GOOGLE_CALENDAR_ID="primary";
 const today=new Date(); today.setHours(0,0,0,0);
 
@@ -247,18 +247,44 @@ async function googleFetch(url,options={}){
   return response.json();
 }
 
-async function listAllGoogleEvents(){
+async function listGoogleCalendars(){
   let pageToken="",all=[];
   do{
-    const params=new URLSearchParams({singleEvents:"true",orderBy:"startTime",showDeleted:"false",maxResults:"2500"});
+    const params=new URLSearchParams({maxResults:"250"});
     if(pageToken)params.set("pageToken",pageToken);
-    const data=await googleFetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(GOOGLE_CALENDAR_ID)}/events?${params}`);
+    const data=await googleFetch(`https://www.googleapis.com/calendar/v3/users/me/calendarList?${params}`);
     all=all.concat(data.items||[]);pageToken=data.nextPageToken||"";
   }while(pageToken);
-  return all.filter(e=>e.status!=="cancelled"&&(!e.eventType||e.eventType==="default"));
+  return all.filter(c=>!c.deleted&&c.accessRole!=="freeBusyReader");
 }
 
-function googleEventToLocal(e,existing){
+async function listEventsForCalendar(calendar){
+  let pageToken="",all=[];
+  do{
+    const params=new URLSearchParams({
+      singleEvents:"true",
+      orderBy:"startTime",
+      showDeleted:"false",
+      maxResults:"2500"
+    });
+    if(pageToken)params.set("pageToken",pageToken);
+    const data=await googleFetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendar.id)}/events?${params}`);
+    all=all.concat(data.items||[]);pageToken=data.nextPageToken||"";
+  }while(pageToken);
+  return all.filter(e=>e.status!=="cancelled");
+}
+
+async function listAllGoogleEvents(){
+  const calendars=await listGoogleCalendars();
+  const results=[];
+  for(const calendar of calendars){
+    const items=await listEventsForCalendar(calendar);
+    items.forEach(event=>results.push({event,calendar}));
+  }
+  return {calendars,results};
+}
+
+function googleEventToLocal(e,existing,calendar){
   const allDay=!!e.start?.date;
   let date,time="";
   if(allDay){date=e.start.date}
@@ -269,21 +295,26 @@ function googleEventToLocal(e,existing){
   const privateProps=e.extendedProperties?.private||{};
   const done=privateProps.myCalendarDone!=null?privateProps.myCalendarDone==="1":!!existing?.done;
   const category=privateProps.myCalendarCategory||existing?.category||"工作";
-  return {id:existing?.id||("g-"+e.id),googleEventId:e.id,date,time,title:e.summary||"（無標題）",description:e.description||"",done,allDay,category};
+  return {id:existing?.id||("g-"+e.id),googleEventId:e.id,googleCalendarId:calendar?.id||existing?.googleCalendarId||"primary",googleCalendarName:calendar?.summaryOverride||calendar?.summary||existing?.googleCalendarName||"主要日曆",date,time,title:e.summary||"（無標題）",description:e.description||"",done,allDay,category};
 }
 
 async function syncFromGoogle(){
-  setSyncNote("正在同步 Google Calendar…");
-  const googleEvents=await listAllGoogleEvents();
-  const byGoogleId=new Map(events.filter(e=>e.googleEventId).map(e=>[e.googleEventId,e]));
+  setSyncNote("正在同步所有 Google 日曆…");
+  const data=await listAllGoogleEvents();
+  const googleEvents=data.results;
+  const byGoogleKey=new Map(events.filter(e=>e.googleEventId).map(e=>[(e.googleCalendarId||"primary")+"::"+e.googleEventId,e]));
   let imported=0,updated=0;
-  googleEvents.forEach(g=>{
-    const existing=byGoogleId.get(g.id);
-    const local=googleEventToLocal(g,existing);
+  googleEvents.forEach(item=>{
+    const g=item.event,calendar=item.calendar;
+    const key=(calendar.id||"primary")+"::"+g.id;
+    const existing=byGoogleKey.get(key);
+    const local=googleEventToLocal(g,existing,calendar);
     if(existing){Object.assign(existing,local);updated++}
     else{events.push(local);imported++}
   });
-  save();render();updateGoogleUI();setSyncNote(`已同步 Google Calendar · 新增 ${imported} 筆，更新 ${updated} 筆`);
+  save();render();updateGoogleUI();
+  const names=data.calendars.map(c=>c.summaryOverride||c.summary).filter(Boolean);
+  setSyncNote(`已同步 ${names.length} 個 Google 日曆 · 新增 ${imported} 筆，更新 ${updated} 筆`);
 }
 
 function localEventToGoogle(e){
@@ -306,16 +337,16 @@ function localDateTimeToRFC3339(dateStr,timeStr){
 }
 
 async function createGoogleEvent(e){
-  const created=await googleFetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(GOOGLE_CALENDAR_ID)}/events`,{method:"POST",body:JSON.stringify(localEventToGoogle(e))});
+  const created=await googleFetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(e.googleCalendarId||GOOGLE_CALENDAR_ID)}/events`,{method:"POST",body:JSON.stringify(localEventToGoogle(e))});
   e.googleEventId=created.id;save();return created;
 }
 async function patchGoogleEvent(e){
   if(!e.googleEventId)return createGoogleEvent(e);
-  return googleFetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(GOOGLE_CALENDAR_ID)}/events/${encodeURIComponent(e.googleEventId)}`,{method:"PATCH",body:JSON.stringify(localEventToGoogle(e))});
+  return googleFetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(e.googleCalendarId||GOOGLE_CALENDAR_ID)}/events/${encodeURIComponent(e.googleEventId)}`,{method:"PATCH",body:JSON.stringify(localEventToGoogle(e))});
 }
 async function deleteGoogleEvent(e){
   if(!e.googleEventId)return;
-  await googleFetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(GOOGLE_CALENDAR_ID)}/events/${encodeURIComponent(e.googleEventId)}`,{method:"DELETE"});
+  await googleFetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(e.googleCalendarId||GOOGLE_CALENDAR_ID)}/events/${encodeURIComponent(e.googleEventId)}`,{method:"DELETE"});
 }
 
 async function saveEvent(){
