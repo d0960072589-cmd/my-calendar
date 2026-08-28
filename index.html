@@ -362,8 +362,11 @@ async function listAllGoogleTasks(){
 function googleTaskToLocal(task,list){
   let dueDate="",dueTime="";
   if(task.due){
-    const d=new Date(task.due);dueDate=dateKey(d);
-    if(d.getHours()||d.getMinutes())dueTime=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+    // Google Tasks 的 due 對於一般全天任務是日期型資料；
+    // 直接取日期部分，避免時區轉換把全天任務變成 08:00。
+    const raw=String(task.due);
+    const m=raw.match(/^(\\d{4}-\\d{2}-\\d{2})/);
+    if(m)dueDate=m[1];
   }
   return {googleTaskId:task.id,googleTaskListId:list.id,googleTaskListName:list.title||"Tasks",title:task.title||"（無標題）",notes:task.notes||"",dueDate,dueTime,status:task.status||"needsAction"};
 }
