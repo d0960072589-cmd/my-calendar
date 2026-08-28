@@ -28,7 +28,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,B
 .card{position:relative;margin:8px 0;padding:13px 52px 14px 11px;background:var(--card);border-radius:17px;border:1px solid rgba(150,140,133,.28);box-shadow:0 3px 12px rgba(70,55,45,.08);cursor:pointer;min-height:76px}
 .card.done{opacity:.5}.card.done .title{text-decoration:line-through}.task-card{border-left:4px solid #9c918a}.task-card .category-badge{background:rgba(156,145,138,.16)}.task-undated{color:var(--muted);font-size:12px}.card-number{float:left;width:27px;color:#8a807a;font-size:11px;font-weight:800;padding-top:2px}.card-content{margin-left:34px}
 .time,.all-day{font-size:13px;font-weight:800}.title{margin-top:3px;font-size:15px;font-weight:800;line-height:1.4}.description{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.5}
-.check-button{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:31px;height:31px;border-radius:9px;border:2px solid #9c918a;background:transparent;color:#fff;font-size:16px;font-weight:800;cursor:pointer}.check-button.checked{background:var(--button);border-color:var(--button)}
+.check-button{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:31px;height:31px;border-radius:9px;border:2px solid #9c918a;background:transparent;color:#fff;font-size:16px;font-weight:800;cursor:pointer}.check-button.checked{background:var(--button);border-color:var(--button)}.task-edit-button{position:absolute;right:52px;top:50%;transform:translateY(-50%);border:0;border-radius:9px;background:#e3dfdc;color:var(--text);padding:7px 10px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 .category-badge{display:inline-block;margin-top:7px;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.58);color:var(--muted);font-size:11px;font-weight:700}
 .empty{text-align:center;padding:60px 20px;color:var(--muted)}
 .add-button{position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));width:54px;height:54px;border:none;border-radius:17px;background:var(--button);color:#fff;font-size:28px;box-shadow:0 8px 22px rgba(26,11,8,.22);cursor:pointer}
@@ -209,8 +209,9 @@ function render(){
     visibleTasks.forEach(task=>{
       const card=document.createElement("div");card.className="card task-card"+(task.status==="completed"?" done":"");
       const when=task.dueDate?(task.dueTime||"全天"):"未排日期";
-      card.innerHTML=`<div class="card-number">${String(++index).padStart(2,"0")}</div><div class="card-content"><div class="${task.dueDate?(task.dueTime?"time":"all-day"):"task-undated"}">${escapeHtml(when)}</div><div class="title">${escapeHtml(task.title||"（無標題）")}</div>${task.notes?`<div class="description">${escapeHtml(task.notes)}</div>`:""}<div class="category-badge">Tasks</div></div><button class="check-button ${task.status==="completed"?"checked":""}" aria-label="完成">${task.status==="completed"?"✓":""}</button>`;
-      card.addEventListener("click",e=>{if(e.target.classList.contains("check-button"))return;openEditTaskModal(task)});
+      card.innerHTML=`<div class="card-number">${String(++index).padStart(2,"0")}</div><div class="card-content"><div class="${task.dueDate?(task.dueTime?"time":"all-day"):"task-undated"}">${escapeHtml(when)}</div><div class="title">${escapeHtml(task.title||"（無標題）")}</div>${task.notes?`<div class="description">${escapeHtml(task.notes)}</div>`:""}<div class="category-badge">Tasks</div></div><button class="task-edit-button" type="button" aria-label="編輯 Task">編輯</button><button class="check-button ${task.status==="completed"?"checked":""}" aria-label="完成">${task.status==="completed"?"✓":""}</button>`;
+       card.addEventListener("click",e=>{if(e.target.closest(".check-button")||e.target.closest(".task-edit-button"))return;openEditTaskModal(task)});
+       card.querySelector(".task-edit-button").addEventListener("click",e=>{e.stopPropagation();openEditTaskModal(task)});
       card.querySelector(".check-button").addEventListener("click",async e=>{e.stopPropagation();await toggleGoogleTask(task)});
       list.appendChild(card);
     });
