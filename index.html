@@ -26,7 +26,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,B
 .category-filter button{border:1px solid rgba(150,140,133,.25);background:rgba(255,255,255,.55);color:var(--muted);padding:8px 14px;border-radius:999px;white-space:nowrap;cursor:pointer;font:inherit;font-size:13px}.category-filter button.category-active{background:var(--button);color:#fff;border-color:var(--button)}
 .period{display:flex;align-items:center;gap:10px;margin:17px 0 9px;color:var(--muted);font-size:13px;font-weight:800}.period:after{content:"";height:1px;background:var(--line);flex:1}
 .card{position:relative;margin:8px 0;padding:13px 52px 14px 11px;background:var(--card);border-radius:17px;border:1px solid rgba(150,140,133,.28);box-shadow:0 3px 12px rgba(70,55,45,.08);cursor:pointer;min-height:76px}
-.card.done{opacity:.5}.card.done .title{text-decoration:line-through}.card-number{float:left;width:27px;color:#8a807a;font-size:11px;font-weight:800;padding-top:2px}.card-content{margin-left:34px}
+.card.done{opacity:.5}.card.done .title{text-decoration:line-through}.task-card{border-left:4px solid #9c918a}.task-card .category-badge{background:rgba(156,145,138,.16)}.task-undated{color:var(--muted);font-size:12px}.card-number{float:left;width:27px;color:#8a807a;font-size:11px;font-weight:800;padding-top:2px}.card-content{margin-left:34px}
 .time,.all-day{font-size:13px;font-weight:800}.title{margin-top:3px;font-size:15px;font-weight:800;line-height:1.4}.description{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.5}
 .check-button{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:31px;height:31px;border-radius:9px;border:2px solid #9c918a;background:transparent;color:#fff;font-size:16px;font-weight:800;cursor:pointer}.check-button.checked{background:var(--button);border-color:var(--button)}
 .category-badge{display:inline-block;margin-top:7px;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.58);color:var(--muted);font-size:11px;font-weight:700}
@@ -104,7 +104,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,B
 <script>
 const STORAGE_KEY="myCalendarEvents";
 const GOOGLE_CLIENT_ID="999156061137-t6089c01hqutua812no8ttts4rbrre6v.apps.googleusercontent.com";
-const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar";
+const GOOGLE_SCOPE="https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/tasks";
 const GOOGLE_CALENDAR_ID="primary";
 const today=new Date(); today.setHours(0,0,0,0);
 
@@ -127,6 +127,7 @@ if(!events){
 
 let selectedDate=new Date(today),currentTab="today",editingId=null,currentCategory="all";
 let googleToken=null,googleTokenExpiresAt=0,googleTokenClient=null,googleReady=false;
+let tasks=[];
 
 function dateKey(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function parseDate(s){const [y,m,d]=s.split("-").map(Number);const x=new Date(y,m-1,d);x.setHours(0,0,0,0);return x}
@@ -149,6 +150,20 @@ function getVisibleEvents(){
   return result;
 }
 
+function getVisibleTasks(){
+  let result=[...tasks];
+  if(currentTab==="today")result=result.filter(t=>t.dueDate===dateKey(selectedDate));
+  else if(currentTab==="tomorrow")result=result.filter(t=>t.dueDate===dateKey(addDays(today,1)));
+  else if(currentTab==="week"){
+    const start=new Date(selectedDate);start.setDate(start.getDate()-start.getDay());const end=addDays(start,6);
+    result=result.filter(t=>{if(!t.dueDate)return false;const d=parseDate(t.dueDate);return d>=start&&d<=end});
+  }
+  const q=getSearchText();
+  if(q)result=result.filter(t=>(t.title+" "+(t.notes||"")).toLowerCase().includes(q));
+  if(currentCategory!=="all")result=[];
+  return result;
+}
+
 function render(){
   const title=document.getElementById("dateTitle"),sub=document.getElementById("subtitle");
   if(currentTab==="today"){title.textContent=dateText(selectedDate);sub.textContent="今天的行程 · 列表模式"}
@@ -158,20 +173,34 @@ function render(){
   document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===currentTab));
   document.querySelector(".search-box").classList.toggle("has-text",!!getSearchText());
   document.querySelectorAll(".category-filter button").forEach(b=>b.classList.toggle("category-active",b.dataset.category===currentCategory));
+
   let visible=getVisibleEvents().sort((a,b)=>(a.date+(a.allDay?"00:00":a.time||"23:59")).localeCompare(b.date+(b.allDay?"00:00":b.time||"23:59")));
+  const visibleTasks=getVisibleTasks().sort((a,b)=>((a.dueDate||"9999-12-31")+(a.dueTime||"23:59")).localeCompare((b.dueDate||"9999-12-31")+(b.dueTime||"23:59")));
   const list=document.getElementById("scheduleList");list.innerHTML="";
-  if(!visible.length){list.innerHTML='<div class="empty">目前沒有行程</div>';return}
-  let lastDate="",lastPeriod="";
-  visible.forEach((event,index)=>{
+  if(!visible.length&&!visibleTasks.length){list.innerHTML='<div class="empty">目前沒有行程</div>';return}
+
+  let lastDate="",lastPeriod="",index=0;
+  visible.forEach(event=>{
     if((currentTab==="week"||currentTab==="all")&&event.date!==lastDate){lastDate=event.date;lastPeriod="";const el=document.createElement("div");el.className="period";el.textContent=dateText(parseDate(event.date));list.appendChild(el)}
     const period=event.allDay?"全天":(event.time<"12:00"?"上午作業":"下午作業");
     if(period!==lastPeriod){lastPeriod=period;const el=document.createElement("div");el.className="period";el.textContent=period;list.appendChild(el)}
     const card=document.createElement("div");card.className="card"+(event.done?" done":"");
-    card.innerHTML=`<div class="card-number">${String(index+1).padStart(2,"0")}</div><div class="card-content"><div class="${event.allDay?"all-day":"time"}">${event.allDay?"全天":event.time}</div><div class="title">${escapeHtml(event.title)}</div>${event.description?`<div class="description">${escapeHtml(event.description)}</div>`:""}<div class="category-badge">${escapeHtml(event.category||"工作")}</div></div><button class="check-button ${event.done?"checked":""}" aria-label="完成">${event.done?"✓":""}</button>`;
+    card.innerHTML=`<div class="card-number">${String(++index).padStart(2,"0")}</div><div class="card-content"><div class="${event.allDay?"all-day":"time"}">${event.allDay?"全天":event.time}</div><div class="title">${escapeHtml(event.title)}</div>${event.description?`<div class="description">${escapeHtml(event.description)}</div>`:""}<div class="category-badge">${escapeHtml(event.category||"工作")}</div></div><button class="check-button ${event.done?"checked":""}" aria-label="完成">${event.done?"✓":""}</button>`;
     card.addEventListener("click",e=>{if(e.target.classList.contains("check-button"))return;openEditModal(event.id)});
     card.querySelector(".check-button").addEventListener("click",async e=>{e.stopPropagation();event.done=!event.done;save();render();if(event.googleEventId&&googleToken)try{await patchGoogleEvent(event)}catch(err){showSyncError(err)}});
     list.appendChild(card);
   });
+
+  if(visibleTasks.length){
+    const taskHeading=document.createElement("div");taskHeading.className="period";taskHeading.textContent="Tasks";list.appendChild(taskHeading);
+    visibleTasks.forEach(task=>{
+      const card=document.createElement("div");card.className="card task-card"+(task.status==="completed"?" done":"");
+      const when=task.dueDate?(task.dueTime||"全天"):"未排日期";
+      card.innerHTML=`<div class="card-number">${String(++index).padStart(2,"0")}</div><div class="card-content"><div class="${task.dueDate?(task.dueTime?"time":"all-day"):"task-undated"}">${escapeHtml(when)}</div><div class="title">${escapeHtml(task.title||"（無標題）")}</div>${task.notes?`<div class="description">${escapeHtml(task.notes)}</div>`:""}<div class="category-badge">Tasks</div></div><button class="check-button ${task.status==="completed"?"checked":""}" aria-label="完成">${task.status==="completed"?"✓":""}</button>`;
+      card.querySelector(".check-button").addEventListener("click",async e=>{e.stopPropagation();await toggleGoogleTask(task)});
+      list.appendChild(card);
+    });
+  }
 }
 
 function setTab(tab){currentTab=tab;if(tab==="today")selectedDate=new Date(today);if(tab==="tomorrow")selectedDate=addDays(today,1);render()}
@@ -298,8 +327,49 @@ function googleEventToLocal(e,existing,calendar){
   return {id:existing?.id||("g-"+e.id),googleEventId:e.id,googleCalendarId:calendar?.id||existing?.googleCalendarId||"primary",googleCalendarName:calendar?.summaryOverride||calendar?.summary||existing?.googleCalendarName||"主要日曆",date,time,title:e.summary||"（無標題）",description:e.description||"",done,allDay,category};
 }
 
+async function listGoogleTaskLists(){
+  let pageToken="",all=[];
+  do{
+    const params=new URLSearchParams({maxResults:"100"});
+    if(pageToken)params.set("pageToken",pageToken);
+    const data=await googleFetch(`https://tasks.googleapis.com/tasks/v1/users/@me/lists?${params}`);
+    all=all.concat(data.items||[]);pageToken=data.nextPageToken||"";
+  }while(pageToken);
+  return all.filter(x=>!x.deleted);
+}
+
+async function listTasksForList(taskList){
+  let pageToken="",all=[];
+  do{
+    const params=new URLSearchParams({maxResults:"100","showCompleted":"true","showHidden":"true"});
+    if(pageToken)params.set("pageToken",pageToken);
+    const data=await googleFetch(`https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(taskList.id)}/tasks?${params}`);
+    all=all.concat(data.items||[]);pageToken=data.nextPageToken||"";
+  }while(pageToken);
+  return all.filter(t=>!t.deleted);
+}
+
+async function listAllGoogleTasks(){
+  const lists=await listGoogleTaskLists();
+  const results=[];
+  for(const list of lists){
+    const items=await listTasksForList(list);
+    items.forEach(task=>results.push({task,list}));
+  }
+  return {lists,results};
+}
+
+function googleTaskToLocal(task,list){
+  let dueDate="",dueTime="";
+  if(task.due){
+    const d=new Date(task.due);dueDate=dateKey(d);
+    if(d.getHours()||d.getMinutes())dueTime=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+  }
+  return {googleTaskId:task.id,googleTaskListId:list.id,googleTaskListName:list.title||"Tasks",title:task.title||"（無標題）",notes:task.notes||"",dueDate,dueTime,status:task.status||"needsAction"};
+}
+
 async function syncFromGoogle(){
-  setSyncNote("正在同步所有 Google 日曆…");
+  setSyncNote("正在同步 Google Calendar 與 Tasks…");
   const data=await listAllGoogleEvents();
   const googleEvents=data.results;
   const byGoogleKey=new Map(events.filter(e=>e.googleEventId).map(e=>[(e.googleCalendarId||"primary")+"::"+e.googleEventId,e]));
@@ -309,12 +379,32 @@ async function syncFromGoogle(){
     const key=(calendar.id||"primary")+"::"+g.id;
     const existing=byGoogleKey.get(key);
     const local=googleEventToLocal(g,existing,calendar);
-    if(existing){Object.assign(existing,local);updated++}
-    else{events.push(local);imported++}
+    if(existing){Object.assign(existing,local);updated++}else{events.push(local);imported++}
   });
+
+  let taskCount=0,taskError="";
+  try{
+    const taskData=await listAllGoogleTasks();
+    tasks=taskData.results.map(x=>googleTaskToLocal(x.task,x.list));
+    taskCount=tasks.length;
+  }catch(err){console.error(err);taskError=err?.message||"Tasks 同步失敗";tasks=[]}
+
   save();render();updateGoogleUI();
   const names=data.calendars.map(c=>c.summaryOverride||c.summary).filter(Boolean);
-  setSyncNote(`已同步 ${names.length} 個 Google 日曆 · 新增 ${imported} 筆，更新 ${updated} 筆`);
+  setSyncNote(`已同步 ${names.length} 個 Google 日曆 · 新增 ${imported} 筆，更新 ${updated} 筆 · Tasks ${taskCount} 筆${taskError?"（同步失敗）":""}`);
+  if(taskError)alert("Google Calendar 已同步，但 Google Tasks 暫時無法讀取。\n請重新授權 Google，或稍後再試。\n\n"+taskError);
+}
+
+async function toggleGoogleTask(task){
+  const newStatus=task.status==="completed"?"needsAction":"completed";
+  task.status=newStatus;render();
+  try{
+    await googleFetch(`https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(task.googleTaskListId)}/tasks/${encodeURIComponent(task.googleTaskId)}`,{method:"PATCH",body:JSON.stringify({status:newStatus})});
+    setSyncNote("Tasks 已同步");
+  }catch(err){
+    task.status=newStatus==="completed"?"needsAction":"completed";render();
+    console.error(err);showSyncError(err);
+  }
 }
 
 function localEventToGoogle(e){
