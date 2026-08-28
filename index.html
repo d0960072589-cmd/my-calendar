@@ -126,7 +126,7 @@ if(!events){
   if(changed)save();
 }
 
-let selectedDate=new Date(today),currentTab="today",editingId=null,currentCategory="all";
+let selectedDate=new Date(today),currentTab="today",editingId=null,editingTaskId=null,currentCategory="all";
 let googleToken=null,googleTokenExpiresAt=0,googleTokenClient=null,googleReady=false;
 let tasks=[];
 
@@ -210,6 +210,7 @@ function render(){
       const card=document.createElement("div");card.className="card task-card"+(task.status==="completed"?" done":"");
       const when=task.dueDate?(task.dueTime||"全天"):"未排日期";
       card.innerHTML=`<div class="card-number">${String(++index).padStart(2,"0")}</div><div class="card-content"><div class="${task.dueDate?(task.dueTime?"time":"all-day"):"task-undated"}">${escapeHtml(when)}</div><div class="title">${escapeHtml(task.title||"（無標題）")}</div>${task.notes?`<div class="description">${escapeHtml(task.notes)}</div>`:""}<div class="category-badge">Tasks</div></div><button class="check-button ${task.status==="completed"?"checked":""}" aria-label="完成">${task.status==="completed"?"✓":""}</button>`;
+      card.addEventListener("click",e=>{if(e.target.classList.contains("check-button"))return;openEditTaskModal(task)});
       card.querySelector(".check-button").addEventListener("click",async e=>{e.stopPropagation();await toggleGoogleTask(task)});
       list.appendChild(card);
     });
@@ -226,17 +227,27 @@ document.getElementById("datePickerBackground").addEventListener("click",e=>{if(
 
 function toggleAllDay(){const checkbox=document.getElementById("eventAllDay"),timeInput=document.getElementById("eventTime");timeInput.disabled=checkbox.checked;timeInput.style.opacity=checkbox.checked?"0.45":"1";if(checkbox.checked)timeInput.value=""}
 function openAddModal(){
-  editingId=null;document.getElementById("modalTitle").textContent="新增行程";
+  editingId=null;editingTaskId=null;document.getElementById("modalTitle").textContent="新增行程";
   document.getElementById("eventDate").value=dateKey(currentTab==="tomorrow"?addDays(today,1):selectedDate);
   document.getElementById("eventCategory").value="工作";document.getElementById("eventTime").value="";document.getElementById("eventAllDay").checked=false;toggleAllDay();
   document.getElementById("eventTitle").value="";document.getElementById("eventDescription").value="";document.getElementById("deleteButton").style.display="none";
   document.getElementById("modalBackground").classList.add("show")
 }
 function openEditModal(id){
-  const e=events.find(x=>x.id===id);if(!e)return;editingId=id;document.getElementById("modalTitle").textContent="編輯行程";
+  const e=events.find(x=>x.id===id);if(!e)return;editingId=id;editingTaskId=null;document.getElementById("modalTitle").textContent="編輯行程";
   document.getElementById("eventDate").value=e.date;document.getElementById("eventCategory").value=e.category||"工作";document.getElementById("eventTime").value=e.time||"";
   document.getElementById("eventAllDay").checked=!!e.allDay;toggleAllDay();document.getElementById("eventTitle").value=e.title;document.getElementById("eventDescription").value=e.description||"";
   document.getElementById("deleteButton").style.display="block";document.getElementById("modalBackground").classList.add("show")
+}
+function openEditTaskModal(task){
+  editingId=null;editingTaskId=task.googleTaskId;document.getElementById("modalTitle").textContent="編輯 Task";
+  document.getElementById("eventDate").value=task.dueDate||"";
+  document.getElementById("eventCategory").value="Tasks";
+  document.getElementById("eventTime").value="";document.getElementById("eventAllDay").checked=true;toggleAllDay();
+  document.getElementById("eventTitle").value=task.title||"";
+  document.getElementById("eventDescription").value=task.notes||"";
+  document.getElementById("deleteButton").style.display="none";
+  document.getElementById("modalBackground").classList.add("show")
 }
 function closeModal(){document.getElementById("modalBackground").classList.remove("show")}
 document.getElementById("modalBackground").addEventListener("click",e=>{if(e.target.id==="modalBackground")closeModal()});
@@ -465,12 +476,20 @@ async function createGoogleTask({title,notes,dueDate}){
   return googleTaskToLocal(created,list);
 }
 
+async function patchGoogleTask(task){
+  const body={title:task.title||"（無標題）",notes:task.notes||"",status:task.status||"needsAction"};
+  if(task.dueDate)body.due=task.dueDate+"T00:00:00.000Z";
+  else body.due=null;
+  const updated=await googleFetch(`https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(task.googleTaskListId)}/tasks/${encodeURIComponent(task.googleTaskId)}`,{method:"PATCH",body:JSON.stringify(body)});
+  const local=googleTaskToLocal(updated,{id:task.googleTaskListId,title:task.googleTaskListName});
+  Object.assign(task,local);
+}
+
 async function saveEvent(){
   const date=document.getElementById("eventDate").value,time=document.getElementById("eventTime").value,title=document.getElementById("eventTitle").value.trim(),description=document.getElementById("eventDescription").value.trim(),allDay=document.getElementById("eventAllDay").checked,category=document.getElementById("eventCategory").value;
   if(category==="Tasks"){
     if(!title){alert("請輸入任務名稱");return}
-    if(editingId!==null){alert("目前只能新增 Tasks；既有 Tasks 請直接在 Google Tasks 修改。");return}
-    if(!googleToken){alert("請先連結 Google，才能新增 Tasks。");return}
+    if(!googleToken){alert("請先連結 Google，才能新增或修改 Tasks。");return}
   }else{
     if(!date||(!allDay&&!time)||!title){alert(allDay?"請輸入日期和行程名稱":"請輸入日期、時間和行程名稱");return}
   }
@@ -478,6 +497,14 @@ async function saveEvent(){
   const button=document.getElementById("saveEventButton");button.disabled=true;button.textContent="儲存中…";
   try{
     if(category==="Tasks"){
+      if(editingTaskId!==null){
+        const task=tasks.find(x=>x.googleTaskId===editingTaskId);
+        if(!task)throw new Error("找不到要修改的 Google Task");
+        task.title=title;task.notes=description;task.dueDate=date||"";task.dueTime="";
+        await patchGoogleTask(task);
+        render();closeModal();setSyncNote("Tasks 已同步");
+        return;
+      }
       const created=await createGoogleTask({title,notes:description,dueDate:date||""});
       tasks.push(created);
       render();closeModal();setSyncNote("Tasks 已同步");
