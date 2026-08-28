@@ -365,7 +365,7 @@ function googleTaskToLocal(task,list){
     // Google Tasks 的 due 對於一般全天任務是日期型資料；
     // 直接取日期部分，避免時區轉換把全天任務變成 08:00。
     const raw=String(task.due);
-    const m=raw.match(/^(\\d{4}-\\d{2}-\\d{2})/);
+    const m=raw.match(/^(\d{4}-\d{2}-\d{2})/);
     if(m)dueDate=m[1];
   }
   return {googleTaskId:task.id,googleTaskListId:list.id,googleTaskListName:list.title||"Tasks",title:task.title||"（無標題）",notes:task.notes||"",dueDate,dueTime,status:task.status||"needsAction"};
