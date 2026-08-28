@@ -78,6 +78,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,B
     <button data-category="工作" onclick="setCategoryFilter('工作')">工作</button>
     <button data-category="生活" onclick="setCategoryFilter('生活')">生活</button>
     <button data-category="其他" onclick="setCategoryFilter('其他')">其他</button>
+    <button data-category="Tasks" onclick="setCategoryFilter('Tasks')">Tasks</button>
   </div>
   <div id="scheduleList"></div>
 </div>
@@ -93,7 +94,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,B
 <div class="modal-background" id="modalBackground">
   <div class="modal"><h2 id="modalTitle">新增行程</h2>
     <div class="form-group"><label>日期</label><input type="date" id="eventDate"></div>
-    <div class="form-group"><label>分類</label><select id="eventCategory"><option value="工作">工作</option><option value="生活">生活</option><option value="其他">其他</option></select></div>
+    <div class="form-group"><label>分類</label><select id="eventCategory" onchange="handleCategoryChange()"><option value="工作">工作</option><option value="生活">生活</option><option value="其他">其他</option><option value="Tasks">Tasks</option></select></div>
     <div class="form-group"><label>時間</label><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><input type="checkbox" id="eventAllDay" onchange="toggleAllDay()" style="width:18px;height:18px;accent-color:#1a0b08;"><label for="eventAllDay" style="margin:0;font-size:13px;font-weight:600;cursor:pointer;">全天行程</label></div><input type="time" id="eventTime"></div>
     <div class="form-group"><label>行程名稱</label><input type="text" id="eventTitle" placeholder="例如：撰寫訪問大綱"></div>
     <div class="form-group"><label>備註</label><textarea id="eventDescription" placeholder="可以輸入行程備註"></textarea></div>
@@ -138,6 +139,17 @@ function getSearchText(){return document.getElementById("searchInput").value.tri
 function clearSearch(){document.getElementById("searchInput").value="";render()}
 function setCategoryFilter(category){currentCategory=category;render()}
 
+function handleCategoryChange(){
+  const category=document.getElementById("eventCategory").value;
+  const allDay=document.getElementById("eventAllDay");
+  const timeInput=document.getElementById("eventTime");
+  if(category==="Tasks"){
+    allDay.checked=true;
+    timeInput.value="";
+  }
+  toggleAllDay();
+}
+
 function getVisibleEvents(){
   let result;
   if(currentTab==="today")result=events.filter(e=>e.date===dateKey(selectedDate));
@@ -160,6 +172,7 @@ function getVisibleTasks(){
   }
   const q=getSearchText();
   if(q)result=result.filter(t=>(t.title+" "+(t.notes||"")).toLowerCase().includes(q));
+  if(currentCategory==="Tasks")return result;
   if(currentCategory!=="all")result=[];
   return result;
 }
@@ -442,11 +455,35 @@ async function deleteGoogleEvent(e){
   await googleFetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(e.googleCalendarId||GOOGLE_CALENDAR_ID)}/events/${encodeURIComponent(e.googleEventId)}`,{method:"DELETE"});
 }
 
+async function createGoogleTask({title,notes,dueDate}){
+  const lists=await listGoogleTaskLists();
+  if(!lists.length)throw new Error("找不到可用的 Google Tasks 清單");
+  const list=lists[0];
+  const body={title,notes:notes||"",status:"needsAction"};
+  if(dueDate)body.due=dueDate+"T00:00:00.000Z";
+  const created=await googleFetch(`https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(list.id)}/tasks`,{method:"POST",body:JSON.stringify(body)});
+  return googleTaskToLocal(created,list);
+}
+
 async function saveEvent(){
   const date=document.getElementById("eventDate").value,time=document.getElementById("eventTime").value,title=document.getElementById("eventTitle").value.trim(),description=document.getElementById("eventDescription").value.trim(),allDay=document.getElementById("eventAllDay").checked,category=document.getElementById("eventCategory").value;
-  if(!date||(!allDay&&!time)||!title){alert(allDay?"請輸入日期和行程名稱":"請輸入日期、時間和行程名稱");return}
+  if(category==="Tasks"){
+    if(!title){alert("請輸入任務名稱");return}
+    if(editingId!==null){alert("目前只能新增 Tasks；既有 Tasks 請直接在 Google Tasks 修改。");return}
+    if(!googleToken){alert("請先連結 Google，才能新增 Tasks。");return}
+  }else{
+    if(!date||(!allDay&&!time)||!title){alert(allDay?"請輸入日期和行程名稱":"請輸入日期、時間和行程名稱");return}
+  }
+
   const button=document.getElementById("saveEventButton");button.disabled=true;button.textContent="儲存中…";
   try{
+    if(category==="Tasks"){
+      const created=await createGoogleTask({title,notes:description,dueDate:date||""});
+      tasks.push(created);
+      render();closeModal();setSyncNote("Tasks 已同步");
+      return;
+    }
+
     let e;
     if(editingId===null){
       e={id:Date.now(),date,time:allDay?"":time,title,description,done:false,allDay,category};
